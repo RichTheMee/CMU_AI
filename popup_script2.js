@@ -1,3 +1,14 @@
+<!-- 1) Your positioning override must go *before* your main script -->
+<script>
+  window.PopupConfig = {
+    width:  '300px',  // or whatever
+    height: '200px',
+    bottom: '20px',
+    right:  '20px'
+  };
+</script>
+
+<!-- 2) Then your popup script -->
 <script>
 (function() {
   // ——— Configurable settings ———
@@ -57,7 +68,7 @@
       bottom: 20px;
       right: 20px;
       background: #357ABD;
-      colour: #fff;
+      color: #fff;             /* corrected */
       padding: 8px 12px;
       border-radius: 4px;
       cursor: pointer;
@@ -112,15 +123,15 @@
     const startX = e.clientX, startY = e.clientY;
     const rect = popup.getBoundingClientRect();
     const onMouseMove = ev => {
-      popup.style.left  = rect.left + (ev.clientX - startX) + 'px';
-      popup.style.top   = rect.top  + (ev.clientY - startY) + 'px';
+      popup.style.left   = rect.left + (ev.clientX - startX) + 'px';
+      popup.style.top    = rect.top  + (ev.clientY - startY) + 'px';
       popup.style.bottom = 'auto';
       popup.style.right  = 'auto';
     };
     document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', () => {
-      document.removeEventListener('mousemove', onMouseMove);
-    }, { once: true });
+    document.addEventListener('mouseup', () =>
+      document.removeEventListener('mousemove', onMouseMove), { once: true }
+    );
   };
 })();
 </script>
