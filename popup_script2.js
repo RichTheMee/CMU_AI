@@ -1,129 +1,126 @@
+<script>
 (function() {
+  // ——— Configurable settings ———
+  const cfg = window.PopupConfig || {
+    width: '300px',
+    height: '200px',
+    bottom: '20px',
+    right: '20px'
+  };
+
   // ——— Inject styles ———
   const style = document.createElement('style');
   style.textContent = `
-    /* Backdrop behind popup */
-    #iframeBackdrop {
-      display: none;
+    #iframePopup {
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 9998;
-      opacity: 0;
-      transition: opacity 0.3s ease;
+      width: ${cfg.width};
+      height: ${cfg.height};
+      bottom: ${cfg.bottom};
+      right: ${cfg.right};
+      background: rgba(255,255,255,0.95);
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      overflow: auto;
+      resize: both;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
     }
-
+    /* Drag handle */
+    #iframePopup .drag-handle {
+      background: #f0f0f0;
+      padding: 4px 8px;
+      cursor: move;
+      user-select: none;
+      border-bottom: 1px solid #ddd;
+      font-size: 0.9rem;
+    }
+    #iframePopup iframe {
+      flex: 1;
+      border: none;
+    }
+    /* Buttons */
+    #iframePopup .controls {
+      position: absolute;
+      top: 4px;
+      right: 8px;
+    }
+    #iframePopup .controls span {
+      margin-left: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
     /* Callout button */
     #calloutBox {
       position: fixed;
-      bottom: 40px;
-      right: 40px;
-      background: linear-gradient(135deg, #4A90E2, #357ABD);
+      bottom: 20px;
+      right: 20px;
+      background: #357ABD;
       colour: #fff;
-      font-family: "Segoe UI", Tahoma, sans-serif;
-      font-size: 1rem;
-      padding: 12px 18px;
-      border: none;
-      border-radius: 50px;
+      padding: 8px 12px;
+      border-radius: 4px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      z-index: 10000;
-    }
-    #calloutBox:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-    }
-
-    /* Popup container */
-    #iframePopup {
-      display: none;
-      position: fixed;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      width: 80%; max-width: 900px;
-      height: 80%; max-height: 600px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-      z-index: 9999;
-      overflow: hidden;
-      opacity: 0;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    #iframePopup.open {
-      display: block;
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    /* Close button */
-    #closePopup {
-      position: absolute;
-      top: 8px; right: 12px;
-      font-size: 1.4rem;
-      line-height: 1;
-      color: #666;
-      cursor: pointer;
-      transition: color 0.2s ease;
-    }
-    #closePopup:hover {
-      color: #000;
-    }
-
-    /* Iframe styling */
-    #iframePopup iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+      z-index: 10001;
     }
   `;
   document.head.appendChild(style);
 
-  // ——— Create backdrop ———
-  const backdrop = document.createElement('div');
-  backdrop.id = 'iframeBackdrop';
-  document.body.appendChild(backdrop);
+  // ——— Build elements ———
+  const callout = document.createElement('div');
+  callout.id = 'calloutBox';
+  callout.textContent = 'Open Module';
+  document.body.appendChild(callout);
 
-  // ——— Create callout button ———
-  const calloutBox = document.createElement('button');
-  calloutBox.id = 'calloutBox';
-  calloutBox.textContent = 'Open AI Module';
-  document.body.appendChild(calloutBox);
+  const popup = document.createElement('div');
+  popup.id = 'iframePopup';
+  popup.style.display = 'none';
 
-  // ——— Create popup container ———
-  const iframePopup = document.createElement('div');
-  iframePopup.id = 'iframePopup';
+  // drag handle
+  const handle = document.createElement('div');
+  handle.className = 'drag-handle';
+  handle.textContent = 'AI Module';
+  popup.appendChild(handle);
 
-  const closePopup = document.createElement('div');
-  closePopup.id = 'closePopup';
-  closePopup.textContent = '✕';
+  // controls: minimise & close
+  const ctrl = document.createElement('div');
+  ctrl.className = 'controls';
+  const minBtn = document.createElement('span');
+  minBtn.textContent = '—';
+  const closeBtn = document.createElement('span');
+  closeBtn.textContent = '✕';
+  ctrl.append(minBtn, closeBtn);
+  popup.appendChild(ctrl);
 
+  // iframe
   const iframe = document.createElement('iframe');
-  iframe.src = 'https://script.google.com/macros/s/AKfycbxdhAeccjOfZu6La-yz6Y1ylBJk8c_MQCUj_S4stjqFmO2ODEySwUJEmK5SmkDGDBk5/exec?courseId=732&pageName=module-1-3-dot-4-the-evolution-of-ai';
-  iframe.loading = 'lazy';
+  iframe.src = 'https://…/exec?courseId=732&pageName=…';
+  popup.appendChild(iframe);
 
-  iframePopup.appendChild(closePopup);
-  iframePopup.appendChild(iframe);
-  document.body.appendChild(iframePopup);
+  document.body.appendChild(popup);
 
-  // ——— Open & close logic ———
-  calloutBox.addEventListener('click', () => {
-    backdrop.style.display = 'block';
-    iframePopup.classList.add('open');
-    // trigger fade-in
-    setTimeout(() => backdrop.style.opacity = '1', 10);
-  });
+  // ——— Behaviour ———
+  callout.onclick = () => popup.style.display = 'block';
+  closeBtn.onclick = () => popup.style.display = 'none';
+  minBtn.onclick = () => {
+    iframe.style.display = iframe.style.display === 'none' ? 'block' : 'none';
+  };
 
-  closePopup.addEventListener('click', () => {
-    backdrop.style.opacity = '0';
-    iframePopup.classList.remove('open');
-    // after transition, hide backdrop
-    backdrop.addEventListener('transitionend', () => {
-      if (!iframePopup.classList.contains('open')) backdrop.style.display = 'none';
+  // ——— Simple drag logic ———
+  handle.onmousedown = e => {
+    e.preventDefault();
+    const startX = e.clientX, startY = e.clientY;
+    const rect = popup.getBoundingClientRect();
+    const onMouseMove = ev => {
+      popup.style.left  = rect.left + (ev.clientX - startX) + 'px';
+      popup.style.top   = rect.top  + (ev.clientY - startY) + 'px';
+      popup.style.bottom = 'auto';
+      popup.style.right  = 'auto';
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', () => {
+      document.removeEventListener('mousemove', onMouseMove);
     }, { once: true });
-  });
-
-  // also close if backdrop clicked
-  backdrop.addEventListener('click', () => closePopup.click());
+  };
 })();
+</script>
