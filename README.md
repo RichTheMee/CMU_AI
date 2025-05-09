@@ -13,3 +13,9 @@ Google script should be directed on how to handle these parameters
   - Which get injected into the original prompte?
   - Can it pull username?
 Duplicate and restyle the google script bot to be leaner and better suited to the popup iframe 
+
+## Maybe dreams
+A modular JavaScript solution that injects a draggable, resizable iframe “chat” panel into specified LMS pages.
+	•	Core logic (core.js): handles styling, element creation, drag-and-resize behaviour and config.
+	•	Wrappers (wrapper-moodle.js & wrapper-canvas.js): detect LMS-specific URL patterns and supply page-specific parameters (course ID, page title) to the core.
+	•	Build output (build/popup-moodle.js & build/popup-canvas.js): concatenated, self-executing bundles you include via a single <script> tag in each LMS.
