@@ -1,19 +1,27 @@
 <!-- 1) Configuration: position, size, etc. -->
 <script>
   window.PopupConfig = {
-    width:  '300px',   // panel width
-    height: '200px',   // panel height
-    bottom: '20px',    // distance from bottom
-    right:  '20px'     // distance from right
+    width:  '300px',
+    height: '200px',
+    bottom: '20px',
+    right:  '20px'
   };
 </script>
 
-<!-- 2) Popup script with page-context capture -->
+<!-- 2) Conditional popup script for just /mod and /book -->
 <script>
 (function() {
-  console.log('popup_script2.js loaded with config:', window.PopupConfig);
+  // ——— A. Only run on these base URLs ———
+  const allowedPatterns = [
+    'https://wondercraft.co.za/moodleV2/mod',
+    'https://wondercraft.co.za/moodleV2/book'
+  ];
+  const pageUrl = window.location.href;
+  if (!allowedPatterns.some(p => pageUrl.startsWith(p))) {
+    return; // exit if not matching
+  }
 
-  // ——— Configurable settings ———
+  // ——— B. Popup logic follows ———
   const cfg = window.PopupConfig || {
     width:  '300px',
     height: '200px',
@@ -21,32 +29,7 @@
     right:  '20px'
   };
 
-  // ——— Capture page context ———
-  const pageUrl   = window.location.href;
-  const pageTitle = document.title;
-  // Try to grab main content; adjust selector if your theme differs
-  let pageText = '';
-  const mainRegion = document.querySelector('.region-content, #page-content, .course-content');
-  if (mainRegion) {
-    pageText = mainRegion.innerText.trim();
-  } else {
-    pageText = document.body.innerText.trim();
-  }
-  // Truncate to 8000 chars to avoid URL overflow
-  pageText = pageText.substring(0, 8000);
-
-  // ——— Build iframe src with encoded params ———
-  const baseEndpoint = 'https://script.google.com/macros/s/AKfycbxdhAeccjOfZu6La-yz6Y1ylBJk8c_MQCUj_S4stjqFmO2ODEySwUJEmK5SmkDGDBk5/exec';
-  const params = new URLSearchParams({
-    courseId: '732',
-    pageUrl,
-    pageTitle,
-    pageText
-  });
-  const iframeSrc = `${baseEndpoint}?${params.toString()}`;
-  console.log('Loading iframe from:', iframeSrc);
-
-  // ——— Inject styles ———
+  // Inject styles
   const style = document.createElement('style');
   style.textContent = `
     #iframePopup {
@@ -65,7 +48,6 @@
       display: flex;
       flex-direction: column;
     }
-    /* Drag handle */
     #iframePopup .drag-handle {
       background: #f0f0f0;
       padding: 4px 8px;
@@ -78,7 +60,6 @@
       flex: 1;
       border: none;
     }
-    /* Controls (minimise & close) */
     #iframePopup .controls {
       position: absolute;
       top: 4px;
@@ -89,7 +70,6 @@
       cursor: pointer;
       font-weight: bold;
     }
-    /* Callout button */
     #calloutBox {
       position: fixed;
       bottom: 20px;
@@ -105,7 +85,7 @@
   `;
   document.head.appendChild(style);
 
-  // ——— Build elements ———
+  // Build elements
   const callout = document.createElement('div');
   callout.id = 'calloutBox';
   callout.textContent = 'Open Module';
@@ -115,13 +95,11 @@
   popup.id = 'iframePopup';
   popup.style.display = 'none';
 
-  // drag handle
   const handle = document.createElement('div');
   handle.className = 'drag-handle';
-  handle.textContent = pageTitle || 'Module';
+  handle.textContent = document.title || 'Module';
   popup.appendChild(handle);
 
-  // controls: minimise & close
   const ctrl = document.createElement('div');
   ctrl.className = 'controls';
   const minBtn = document.createElement('span');
@@ -131,21 +109,20 @@
   ctrl.append(minBtn, closeBtn);
   popup.appendChild(ctrl);
 
-  // iframe
   const iframe = document.createElement('iframe');
-  iframe.src = iframeSrc;
+  iframe.src = 'https://script.google.com/macros/s/AKfycbxdhAeccjOfZu6La-yz6Y1ylBJk8c_MQCUj_S4stjqFmO2ODEySwUJEmK5SmkDGDBk5/exec?courseId=732&pageName=module-1-3-dot-4-the-evolution-of-ai';
   popup.appendChild(iframe);
 
   document.body.appendChild(popup);
 
-  // ——— Behaviour ———
+  // Behaviour
   callout.onclick = () => popup.style.display = 'block';
   closeBtn.onclick = () => popup.style.display = 'none';
   minBtn.onclick = () => {
     iframe.style.display = iframe.style.display === 'none' ? 'block' : 'none';
   };
 
-  // ——— Simple drag logic ———
+  // Drag logic
   handle.onmousedown = e => {
     e.preventDefault();
     const startX = e.clientX, startY = e.clientY;
