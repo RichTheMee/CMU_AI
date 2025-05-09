@@ -1,23 +1,50 @@
-<!-- 1) Your positioning override must go *before* your main script -->
+<!-- 1) Configuration: position, size, etc. -->
 <script>
   window.PopupConfig = {
-    width:  '300px',  // or whatever
+    width:  '300px',   // panel width
+    height: '200px',   // panel height
+    bottom: '20px',    // distance from bottom
+    right:  '20px'     // distance from right
+  };
+</script>
+
+<!-- 2) Popup script with page-context capture -->
+<script>
+(function() {
+  console.log('popup_script2.js loaded with config:', window.PopupConfig);
+
+  // ——— Configurable settings ———
+  const cfg = window.PopupConfig || {
+    width:  '300px',
     height: '200px',
     bottom: '20px',
     right:  '20px'
   };
-</script>
 
-<!-- 2) Then your popup script -->
-<script>
-(function() {
-  // ——— Configurable settings ———
-  const cfg = window.PopupConfig || {
-    width: '300px',
-    height: '200px',
-    bottom: '20px',
-    right: '20px'
-  };
+  // ——— Capture page context ———
+  const pageUrl   = window.location.href;
+  const pageTitle = document.title;
+  // Try to grab main content; adjust selector if your theme differs
+  let pageText = '';
+  const mainRegion = document.querySelector('.region-content, #page-content, .course-content');
+  if (mainRegion) {
+    pageText = mainRegion.innerText.trim();
+  } else {
+    pageText = document.body.innerText.trim();
+  }
+  // Truncate to 8000 chars to avoid URL overflow
+  pageText = pageText.substring(0, 8000);
+
+  // ——— Build iframe src with encoded params ———
+  const baseEndpoint = 'https://script.google.com/macros/s/AKfycbxdhAeccjOfZu6La-yz6Y1ylBJk8c_MQCUj_S4stjqFmO2ODEySwUJEmK5SmkDGDBk5/exec';
+  const params = new URLSearchParams({
+    courseId: '732',
+    pageUrl,
+    pageTitle,
+    pageText
+  });
+  const iframeSrc = `${baseEndpoint}?${params.toString()}`;
+  console.log('Loading iframe from:', iframeSrc);
 
   // ——— Inject styles ———
   const style = document.createElement('style');
@@ -51,7 +78,7 @@
       flex: 1;
       border: none;
     }
-    /* Buttons */
+    /* Controls (minimise & close) */
     #iframePopup .controls {
       position: absolute;
       top: 4px;
@@ -68,11 +95,12 @@
       bottom: 20px;
       right: 20px;
       background: #357ABD;
-      color: #fff;             /* corrected */
+      color: #fff;
       padding: 8px 12px;
       border-radius: 4px;
       cursor: pointer;
       z-index: 10001;
+      font-family: sans-serif;
     }
   `;
   document.head.appendChild(style);
@@ -90,7 +118,7 @@
   // drag handle
   const handle = document.createElement('div');
   handle.className = 'drag-handle';
-  handle.textContent = 'AI Module';
+  handle.textContent = pageTitle || 'Module';
   popup.appendChild(handle);
 
   // controls: minimise & close
@@ -105,7 +133,7 @@
 
   // iframe
   const iframe = document.createElement('iframe');
-  iframe.src = 'https://…/exec?courseId=732&pageName=…';
+  iframe.src = iframeSrc;
   popup.appendChild(iframe);
 
   document.body.appendChild(popup);
